@@ -1,0 +1,151 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mysql-ns
+  labels:
+    name: mysql-ns
+#---
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: mysql-sec
+#  namespace: mysql-ns
+#data:
+#  password: 'YWx3YXlzCg=='
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: mysql-pv
+#  labels:
+#    user: mysql
+#    usage: data-store
+#spec:
+#  capacity:
+#    storage: 30Gi
+#  accessModes:
+#    - ReadWriteMany
+#  persistentVolumeReclaimPolicy: Retain
+#  flexVolume:
+#    driver: "fstab/cifs"
+#    fsType: "cifs"
+#    secretRef:
+#      name: "sarahfs-sec"
+#      namespace: "spark-ns"
+#    # FIXME: use the right IP
+#    options:
+#      source: "//192.168.1.7/vol1"
+#      networkPath: "//192.168.1.7/vol1"
+#      # mountOptions: "vers=2.0,dir_mode==0777,file_mode=0777"
+#      mountOptions: "vers=2.0,dir_mode=0777,file_mode=0777,uid=999,gid=999"
+#---
+#kind: PersistentVolumeClaim
+#apiVersion: v1
+#metadata:
+#  name: mysql-pvc
+#  namespace: mysql-ns
+#spec:
+#  accessModes:
+#  - ReadWriteMany
+#  storageClassName: ""
+#  resources:
+#    requests:
+#      storage: 30Gi
+##  volumeName: sarah
+#  selector:
+#    matchLabels:
+#      user: mysql
+#      usage: data-store
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: mysql-deploy
+#  namespace: mysql-ns
+#  labels:
+#    name: mysql-deploy
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: mysql
+#  template:
+#    metadata:
+#      name: mysql-pod
+#      namespace: mysql-ns
+#      labels: 
+#        app: mysql
+#        name: mysql-pod
+#    spec:
+#      volumes:
+#      - name: mysql-data-store
+#        persistentVolumeClaim:
+#          claimName: mysql-pvc
+#      securityContext:
+#        runAsUser: 999
+#        runAsGroup: 999
+#      #  fsGroup: 999
+#      # initContainers:
+#      # - name: init-server
+#      #   image: mariadb
+#      #   command: ["sh","-c","chown -R 102:105 /var/lib/mysql"]
+#      #   volumeMounts:
+#      #   - name: mysql-data-store
+#      #     mountPath: /var/lib/mysql
+#      #     subPath: mysql-data
+#      containers:
+#      - name: mysql
+#        image: mariadb
+#        imagePullPolicy: IfNotPresent
+#      #  command: ["sleep", "3000"]
+#      #  args: ["--innodb_flush_method=NULL"]
+#        resources:
+#          requests:
+#            cpu: 500m
+#            memory: 1Gi
+#        volumeMounts:
+#        - name: mysql-data-store
+#          mountPath: /var/lib/mysql
+#          subPath: mysql-data
+#        ports:
+#        - containerPort: 3306
+#        env:
+#        - name: MYSQL_ROOT_PASSWORD
+#          valueFrom: 
+#            secretKeyRef:
+#              name: "mysql-sec"
+#              key: "password"
+#---
+#kind: Service
+#apiVersion: v1
+#metadata:
+#  name: mysql-svc
+#  namespace: mysql-ns
+#  labels:
+#    name: mysql-svc
+#spec:
+#  ports:
+#  - protocol: TCP
+#    port: 3306
+#    targetPort: 3306
+#  selector:
+#    app: mysql
+#  type: ClusterIP
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql-svc
+  namespace: mysql-ns
+  labels:
+    name: mysql-svc
+spec:
+  ports:
+  - protocol: TCP
+    port: 3306
+    targetPort: 3306
+  type: ExternalName
+  externalName: node7
+  # externalIPs:
+  # - 192.168.1.27

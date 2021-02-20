@@ -1,0 +1,254 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spark-ns
+  labels:
+    name: spark-ns
+#---
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: hadoop-conf
+#  namespace: spark-ns
+#  labels:
+#    name: hadoop-conf
+#data:
+#  HADOOP_CONF_DIR: /usr/local/etc/
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark
+  namespace: spark-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spark-role
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: spark
+  namespace: spark-ns
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sarahfs-sec
+  namespace: spark-ns
+type: fstab/cifs
+data:
+  username: 'c2FyYWgK'
+  password: 'YWx3YXlzCg=='
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: pack-pv
+#  labels:
+#    user: spark
+#    usage: pack
+#spec:
+#  capacity:
+#    storage: 1Gi
+#  accessModes:
+#    - ReadWriteMany
+#  persistentVolumeReclaimPolicy: Retain
+#  flexVolume:
+#    driver: "fstab/cifs"
+#    fsType: "cifs"
+#    secretRef:
+#      name: "sarahfs-sec"
+#      namespace: "spark-ns"
+#    # FIXME: use the right IP
+#    options:
+#      source: "//192.168.1.7/vol1"
+#      networkPath: "//192.168.1.7/vol1"
+#      # mountOptions: "vers=2.0,dir_mode==0777,file_mode=0777"
+#      mountOptions: "vers=2.0,dir_mode=0777,file_mode=0777"
+#---
+#kind: PersistentVolumeClaim
+#apiVersion: v1
+#metadata:
+#  name: pack-pvc
+#  namespace: spark-ns
+#spec:
+#  accessModes:
+#  - ReadWriteMany
+#  storageClassName: ""
+#  resources:
+#    requests:
+#      storage: 1Gi
+##  volumeName: sarah
+#  selector:
+#    matchLabels:
+#      user: spark
+#      usage: pack
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: conf-pv
+#  labels:
+#    user: spark
+#    usage: conf
+#spec:
+#  capacity:
+#    storage: 1Gi
+#  accessModes:
+#    - ReadWriteMany
+#  persistentVolumeReclaimPolicy: Retain
+#  flexVolume:
+#    driver: "fstab/cifs"
+#    fsType: "cifs"
+#    secretRef:
+#      name: "sarahfs-sec"
+#      namespace: "spark-ns"
+#    # FIXME: use the right IP
+#    options:
+#      source: "//192.168.1.7/vol1"
+#      networkPath: "//192.168.1.7/vol1"
+#      # mountOptions: "vers=2.0,dir_mode==0777,file_mode=0777"
+#      mountOptions: "vers=2.0,dir_mode=0777,file_mode=0777"
+#---
+#kind: PersistentVolumeClaim
+#apiVersion: v1
+#metadata:
+#  name: conf-pvc
+#  namespace: spark-ns
+#spec:
+#  accessModes:
+#  - ReadWriteMany
+#  storageClassName: ""
+#  resources:
+#    requests:
+#      storage: 1Gi
+##  volumeName: sarah
+#  selector:
+#    matchLabels:
+#      user: spark
+#      usage: conf
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-pv
+  labels:
+    user: spark
+    usage: data
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  flexVolume:
+    driver: "fstab/cifs"
+    fsType: "cifs"
+    secretRef:
+      name: "sarahfs-sec"
+      namespace: "spark-ns"
+    # FIXME: use the right IP
+    options:
+      source: "//192.168.1.7/vol1"
+      networkPath: "//192.168.1.7/vol1"
+      # mountOptions: "vers=2.0,dir_mode==0777,file_mode=0777"
+      mountOptions: "vers=2.0,dir_mode=0777,file_mode=0777"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: data-pvc
+  namespace: spark-ns
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 200Gi
+#  volumeName: sarah
+  selector:
+    matchLabels:
+      user: spark
+      usage: data
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: meta-pv
+  labels:
+    user: spark
+    usage: metadata
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  flexVolume:
+    driver: "fstab/cifs"
+    fsType: "cifs"
+    secretRef:
+      name: "sarahfs-sec"
+      namespace: "spark-ns"
+    # FIXME: use the right IP
+    options:
+      source: "//192.168.1.7/vol1"
+      networkPath: "//192.168.1.7/vol1"
+      # mountOptions: "vers=2.0,dir_mode==0777,file_mode=0777"
+      mountOptions: "vers=2.0,dir_mode=0777,file_mode=0777"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: meta-pvc
+  namespace: spark-ns
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 50Gi
+#  volumeName: sarah
+  selector:
+    matchLabels:
+      user: spark
+      usage: metadata
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: spark-svc
+  namespace: spark-ns
+spec:
+  ports:
+  - protocol: TCP
+    port: 4040
+    targetPort: 4040
+  selector:
+    app: spark-driver
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-spark-svc
+  namespace: spark-ns
+spec:
+  rules:
+  - host: www.spark-ui.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: spark-svc
+            port: 
+              number: 4040
